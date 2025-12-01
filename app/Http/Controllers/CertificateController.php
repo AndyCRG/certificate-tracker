@@ -216,21 +216,40 @@ class CertificateController extends Controller
     /* --------------------------------------
  | TOGGLE COLLECTED STATUS
  --------------------------------------- */
-    public function toggleCollected($id)
+    public function toggleCollected($certificateId, Request $request)
     {
-        $certificate = Certificates::findOrFail($id);
+        $participantEmail = $request->input('participant_email');
+        $collectedBy = $request->input('collected_by', 'Manual');
 
-        $certificate->collected = !$certificate->collected;
-        $certificate->collected_at = $certificate->collected ? now() : null;
-        $certificate->collected_by = $certificate->collected ? 'Manual' : null;
+        if (!$participantEmail) {
+            return response()->json(['success' => false, 'message' => 'Participant email missing.'], 400);
+        }
 
-        $certificate->save();
+        $record = DB::table('certificate_participant')
+            ->where('certificate_id', $certificateId)
+            ->where('participant_email', $participantEmail)
+            ->first();
+
+        if (!$record) {
+            return response()->json(['success' => false, 'message' => 'Record not found.'], 404);
+        }
+
+        $newCollected = !$record->collected;
+
+        DB::table('certificate_participant')
+            ->where('certificate_id', $certificateId)
+            ->where('participant_email', $participantEmail)
+            ->update([
+                'collected' => $newCollected ? 1 : 0,
+                'collected_at' => $newCollected ? now() : null,
+                'collected_by' => $newCollected ? $collectedBy : null
+            ]);
 
         return response()->json([
             'success' => true,
-            'collected' => $certificate->collected,
-            'collected_by' => $certificate->collected_by,
-            'collected_at' => $certificate->collected_at ? $certificate->collected_at->format('d-M-Y H:i') : null
+            'collected' => $newCollected,
+            'collected_by' => $newCollected ? $collectedBy : null,
+            'collected_at' => $newCollected ? now()->format('d-M-Y H:i') : null
         ]);
     }
 

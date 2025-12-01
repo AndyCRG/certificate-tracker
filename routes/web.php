@@ -60,9 +60,6 @@ Route::post(
     [CertificateController::class, 'updateStatus']
 )->name('certificate.updateStatus');
 
-// ToggleCollection
-Route::post('/certificates/{id}/toggle-collected', [CertificateController::class, 'toggleCollected'])->name('certificates.toggleCollected');
-
 
 // Profile
 Route::middleware('auth')->group(function () {
