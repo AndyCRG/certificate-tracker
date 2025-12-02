@@ -54,11 +54,11 @@ Route::post(
     [CertificateController::class, 'toggleCollected']
 )->name('certificates.toggleCollected');
 
-// Update status
-Route::post(
-    '/certificate/update-status/{id}',
-    [CertificateController::class, 'updateStatus']
-)->name('certificate.updateStatus');
+// // Update status
+// Route::post(
+//     '/certificate/update-status/{id}',
+//     [CertificateController::class, 'updateStatus']
+// )->name('certificate.updateStatus');
 
 
 // Profile

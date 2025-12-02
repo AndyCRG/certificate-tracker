@@ -7,18 +7,21 @@
     </h2>
 
     @php
-    $allCertificates = \Illuminate\Support\Facades\DB::table('certificate_participant')
+    $allCertificates = DB::table('certificate_participant')
     ->join('certificates', 'certificate_participant.certificate_id', '=', 'certificates.id')
     ->where('certificate_participant.participant_email', $participant->email)
-    ->select('certificates.*')
+    ->select(
+    'certificates.*',
+    'certificate_participant.collected',
+    'certificate_participant.collected_by',
+    'certificate_participant.collected_at',
+    'certificate_participant.participant_email'
+    )
     ->get();
 
     $totalCourses = $allCertificates->pluck('course_id')->unique()->count();
-    $collectedCertificates = $allCertificates->where('collected', 1);
-    $notCollectedCertificates = $allCertificates->where('collected', 0);
-
-    $totalCollected = $collectedCertificates->count();
-    $totalNotCollected = $notCollectedCertificates->count();
+    $totalCollected = $allCertificates->where('collected', 1)->count();
+    $totalNotCollected = $allCertificates->where('collected', 0)->count();
     @endphp
 
     <div id="certificateCounters" class="mb-4 p-4 bg-yellow-100 rounded">
@@ -39,55 +42,59 @@
                 <th>Collected</th>
                 <th>Collected By</th>
                 <th>Date Picked</th>
+                <th>Action</th>
             </tr>
         </thead>
 
-        {{-- Collected Certificates --}}
-        <tbody id="collectedBody">
-            @foreach($collectedCertificates as $c)
-            <tr class="certificate-row">
+        <tbody>
+            @foreach($allCertificates as $c)
+            <tr>
                 <td>{{ $c->course_id }}</td>
                 <td>{{ $c->course_name ?? '-' }}</td>
                 <td>{{ $c->issued_by ?? 'N/A' }}</td>
                 <td>{{ \Carbon\Carbon::parse($c->created_at)->format('d-M-Y') }}</td>
+                <td class="collected-status">{{ $c->collected ? 'Collected' : 'Not Collected' }}</td>
+                <td class="collected-by">{{ $c->collected_by ?? 'N/A' }}</td>
+                <td>{{ $c->collected_at ? \Carbon\Carbon::parse($c->collected_at)->format('d-M-Y H:i') : 'N/A' }}</td>
                 <td>
                     <button type="button"
-                        class="px-3 py-1 rounded-lg font-normal toggle-collected"
+                        class="px-3 py-1 rounded mark-collected-btn"
                         data-id="{{ $c->id }}"
-                        data-email="{{ $participant->email }}"
+                        data-email="{{ $c->participant_email }}"
+                        {{ $c->collected ? 'disabled' : '' }}
                         style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
-                        Collected
+                        Mark as Collected
                     </button>
                 </td>
-                <td class="collected-by">{{ $c->collected_by ?? 'N/A' }}</td>
-                <td>{{ $c->collected_at ? \Carbon\Carbon::parse($c->collected_at)->format('d-M-Y H:i') : 'N/A' }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-
-        {{-- Not Collected Certificates --}}
-        <tbody id="notCollectedBody">
-            @foreach($notCollectedCertificates as $c)
-            <tr class="certificate-row">
-                <td>{{ $c->course_id }}</td>
-                <td>{{ $c->course_name ?? '-' }}</td>
-                <td>{{ $c->issued_by ?? 'N/A' }}</td>
-                <td>{{ \Carbon\Carbon::parse($c->created_at)->format('d-M-Y') }}</td>
-                <td>
-                    <button type="button"
-                        class="px-3 py-1 rounded-lg font-normal toggle-collected"
-                        data-id="{{ $c->id }}"
-                        data-email="{{ $participant->email }}"
-                        style="background-color: rgb(245,247,200); color: rgb(127,98,44);">
-                        Not Collected
-                    </button>
-                </td>
-                <td class="collected-by">{{ $c->collected_by ?? 'N/A' }}</td>
-                <td>{{ $c->collected_at ? \Carbon\Carbon::parse($c->collected_at)->format('d-M-Y H:i') : 'N/A' }}</td>
             </tr>
             @endforeach
         </tbody>
     </table>
+</div>
+
+<!-- Collected By Modal -->
+<div id="collectedByModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" style="z-index: 9999;">
+    <div class="bg-white p-4 rounded-lg w-80 shadow-lg">
+        <h3 class="text-lg font-semibold mb-2" style="color: rgb(127,98,44);">Collected By</h3>
+        <input
+            type="text"
+            id="collectedByInput"
+            class="w-full p-2 mb-3"
+            placeholder="Enter name"
+            style="border: 2px solid rgb(203,211,0); outline: none; color: rgb(127,98,44); border-radius: 6px;">
+        <button
+            id="cancelCollectedBy"
+            class="px-3 py-1 rounded"
+            style="background-color: rgb(245,247,200); color: rgb(127,98,44);">
+            Cancel
+        </button>
+        <button
+            id="saveCollectedBy"
+            class="px-3 py-1 rounded"
+            style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
+            Save
+        </button>
+    </div>
 </div>
 
 <script>
@@ -98,28 +105,68 @@
         const cancelBtn = document.getElementById('cancelCollectedBy');
         let currentButton = null;
 
-        function updateCounters(collectedCount, notCollectedCount) {
+        // Update counters for collected / not collected
+        function updateCounters() {
+            const rows = document.querySelectorAll('#certificatesTable tbody tr');
+            let collectedCount = 0,
+                notCollectedCount = 0;
+
+            rows.forEach(row => {
+                if (row.querySelector('.collected-status').textContent.trim() === 'Collected') {
+                    collectedCount++;
+                } else {
+                    notCollectedCount++;
+                }
+            });
+
             document.getElementById('totalCollected').textContent = collectedCount;
             document.getElementById('totalNotCollected').textContent = notCollectedCount;
         }
 
-        function attachToggle(btn) {
-            btn.addEventListener('click', function() {
-                const isCollected = this.textContent.trim() === 'Collected';
-                if (!isCollected) {
-                    currentButton = this;
-                    input.value = '';
-                    modal.classList.remove('hidden');
-                } else {
-                    toggleCollected(this, '');
-                }
-            });
+        // Update a specific row after save
+        function updateRow(button, data) {
+            const row = button.closest('tr');
+            if (!row) return;
+
+            row.querySelector('.collected-status').textContent = data.collected ? 'Collected' : 'Not Collected';
+            row.querySelector('.collected-by').textContent = data.collected_by || 'N/A';
+            row.querySelector('td:nth-child(7)').textContent = data.collected_at || 'N/A';
+            button.disabled = data.collected;
+
+            updateCounters();
         }
 
-        function toggleCollected(button, collectedBy) {
-            const id = button.dataset.id;
-            const participantEmail = button.dataset.email;
-            const row = button.closest('tr');
+        // Event delegation for dynamic buttons
+        document.getElementById('certificatesTable').addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('mark-collected-btn')) {
+                currentButton = e.target;
+                input.value = '';
+                modal.classList.remove('hidden');
+                input.focus();
+            }
+        });
+
+        // Save button logic
+        saveBtn.addEventListener('click', function() {
+            if (!currentButton) {
+                alert('No row selected!');
+                return;
+            }
+
+            const name = input.value.trim();
+            if (!name) {
+                alert('Please enter a name');
+                return;
+            }
+
+            const id = currentButton.dataset.id;
+            const participantEmail = currentButton.dataset.email;
+
+            console.log('Saving collected by:', {
+                id,
+                participantEmail,
+                name
+            });
 
             fetch(`/certificates/${id}/toggle-collected`, {
                     method: 'POST',
@@ -130,59 +177,45 @@
                     },
                     body: JSON.stringify({
                         participant_email: participantEmail,
-                        collected_by: collectedBy
+                        collected_by: name
                     })
                 })
-                .then(res => res.json())
-                .then(data => {
+                .then(async res => {
+                    const contentType = res.headers.get('content-type');
+                    let data = {};
+
+                    // Parse JSON only if content-type is JSON
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await res.json();
+                    }
+
+                    if (!res.ok) {
+                        console.error('HTTP Error:', res.status, data);
+                        alert(data.message || `Server error ${res.status}`);
+                        return;
+                    }
+
                     if (data.success) {
-                        button.textContent = data.collected ? 'Collected' : 'Not Collected';
-                        button.style.backgroundColor = data.collected ? 'rgb(203,211,0)' : 'rgb(245,247,200)';
-                        row.querySelector('.collected-by').textContent = data.collected_by || 'N/A';
-                        row.querySelector('td:nth-child(7)').textContent = data.collected_at || 'N/A';
-
-                        const targetBody = data.collected ? document.getElementById('collectedBody') : document.getElementById('notCollectedBody');
-                        targetBody.appendChild(row);
-
-                        const collectedCount = document.getElementById('collectedBody').children.length;
-                        const notCollectedCount = document.getElementById('notCollectedBody').children.length;
-                        updateCounters(collectedCount, notCollectedCount);
+                        updateRow(currentButton, data);
+                        modal.classList.add('hidden');
+                        currentButton = null;
+                    } else {
+                        alert(data.message || 'Failed to update');
                     }
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error toggling status!');
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    alert('Error updating status! Check console for details.');
                 });
-        }
-
-        saveBtn.addEventListener('click', function() {
-            const name = input.value.trim();
-            if (name === '') {
-                alert('Please enter a name');
-                return;
-            }
-            toggleCollected(currentButton, name);
-            modal.classList.add('hidden');
         });
 
+        // Cancel button
         cancelBtn.addEventListener('click', function() {
             modal.classList.add('hidden');
+            currentButton = null;
         });
-
-        document.querySelectorAll('.toggle-collected').forEach(attachToggle);
     });
 </script>
 
-<!-- Collected By Modal -->
-<div id="collectedByModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-    <div class="bg-white p-4 rounded-lg w-80">
-        <h3 class="text-lg font-semibold mb-2" style="color: rgb(127,98,44);">Collected By</h3>
-        <input type="text" id="collectedByInput" class="w-full p-2 mb-3" placeholder="Enter name"
-            style="border: 2px solid rgb(203,211,0); outline: none; color: rgb(127,98,44); border-radius: 6px;">
-        <div class="flex justify-end gap-2">
-            <button id="cancelCollectedBy" class="px-3 py-1 rounded" style="background-color: rgb(245,247,200); color: rgb(127,98,44);">Cancel</button>
-            <button id="saveCollectedBy" class="px-3 py-1 rounded" style="background-color: rgb(203,211,0); color: rgb(127,98,44);">Save</button>
-        </div>
-    </div>
-</div>
+
 @endsection

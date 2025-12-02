@@ -18,11 +18,15 @@ class CertificateController extends Controller
         // Total certificates in DB
         $totalCertificates = Certificate::count();
 
-        // Certificates that HAVE files (collected)
-        $receivedCertificates = Certificate::whereNotNull('certificate_file')->count();
+        // Certificates collected (from certificate_participant table)
+        $receivedCertificates = DB::table('certificate_participant')
+            ->where('collected', 1)
+            ->count();
 
-        // Pending = total minus collected
-        $pendingCertificates = $totalCertificates - $receivedCertificates;
+        // Pending = total minus collected (optional)
+        $pendingCertificates = DB::table('certificate_participant')
+            ->where('collected', 0)
+            ->count();
 
         // Total participants in DB
         $totalParticipants = Participant::count();
@@ -34,6 +38,7 @@ class CertificateController extends Controller
             'totalParticipants'
         ));
     }
+
 
 
     /* --------------------------------------
@@ -161,7 +166,13 @@ class CertificateController extends Controller
                 $certificates = \Illuminate\Support\Facades\DB::table('certificate_participant')
                     ->join('certificates', 'certificate_participant.certificate_id', '=', 'certificates.id')
                     ->where('certificate_participant.participant_email', $p->email)
-                    ->select('certificates.*')
+                    ->select(
+                        'certificates.*',
+                        'certificate_participant.collected',
+                        'certificate_participant.collected_by',
+                        'certificate_participant.collected_at',
+                        'certificate_participant.participant_email'
+                    )
                     ->get();
 
                 // Count distinct courses
@@ -188,7 +199,13 @@ class CertificateController extends Controller
         $certificates = DB::table('certificate_participant')
             ->join('certificates', 'certificate_participant.certificate_id', '=', 'certificates.id')
             ->where('certificate_participant.participant_email', $participant->email)
-            ->select('certificates.*')
+            ->select(
+                'certificates.*',
+                'certificate_participant.collected',
+                'certificate_participant.collected_by',
+                'certificate_participant.collected_at',
+                'certificate_participant.participant_email'
+            )
             ->get();
 
         // Count distinct courses
@@ -234,24 +251,24 @@ class CertificateController extends Controller
             return response()->json(['success' => false, 'message' => 'Record not found.'], 404);
         }
 
-        $newCollected = !$record->collected;
-
+        // Mark as collected
         DB::table('certificate_participant')
             ->where('certificate_id', $certificateId)
             ->where('participant_email', $participantEmail)
             ->update([
-                'collected' => $newCollected ? 1 : 0,
-                'collected_at' => $newCollected ? now() : null,
-                'collected_by' => $newCollected ? $collectedBy : null
+                'collected' => 1,
+                'collected_at' => now(),
+                'collected_by' => $collectedBy
             ]);
 
         return response()->json([
             'success' => true,
-            'collected' => $newCollected,
-            'collected_by' => $newCollected ? $collectedBy : null,
-            'collected_at' => $newCollected ? now()->format('d-M-Y H:i') : null
+            'collected' => true,
+            'collected_by' => $collectedBy,
+            'collected_at' => now()->format('d-M-Y H:i')
         ]);
     }
+
 
     /* --------------------------------------
  | ADD SINGLE PARTICIPANT
