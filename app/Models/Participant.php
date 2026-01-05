@@ -32,12 +32,26 @@ class Participant extends Model
 
     public function certificates()
     {
-        return $this->belongsToMany(Certificate::class, 'certificate_participant')
-            ->withPivot('collected', 'collected_at');
+        return $this->belongsToMany(
+            Certificate::class,
+            'certificate_participant',
+            'participant_email', // pivot column for Participant
+            'certificate_id',    // pivot column for Certificate
+            'email',             // Participant PK
+            'id'                 // Certificate PK
+        )->withPivot('collected', 'collected_at');
     }
+
     // Participant.php
     public function courses()
     {
-        return $this->belongsToMany(Certificate::class, 'participant_courses', 'participant_id', 'course_id');
+        return $this->belongsToMany(
+            Certificate::class,
+            'participant_courses',
+            'participant_email',
+            'course_id',
+            'email',
+            'course_id'
+        );
     }
 }

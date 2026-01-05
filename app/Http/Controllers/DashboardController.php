@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Certificate;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
 
 class DashboardController extends Controller
 {
@@ -42,8 +44,9 @@ class DashboardController extends Controller
         $pendingCertificates = $totalCertificates - $receivedCertificates;
 
         // Total distinct participants
-        $totalParticipants = Certificate::distinct('participant_id')->count();
-
+        $totalParticipants = DB::table('certificate_participant')
+            ->distinct('participant_email')
+            ->count('participant_email');
         // For compatibility with your Blade
         $participantCount = $totalParticipants;
 
