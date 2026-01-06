@@ -51,24 +51,26 @@
             <tr>
                 <td>{{ $c->course_id }}</td>
                 <td>{{ $c->course_name ?? '-' }}</td>
-                <td>{{ $c->issued_by ?? 'N/A' }}</td>
+                <td>{{ $c->issued_by ?? 'KSG eLiTI' }}</td>
                 <td>{{ \Carbon\Carbon::parse($c->created_at)->format('d-M-Y') }}</td>
                 <td class="collected-status">{{ $c->collected ? 'Collected' : 'Not Collected' }}</td>
                 <td class="collected-by">{{ $c->collected_by ?? 'N/A' }}</td>
                 <td>{{ $c->collected_at ? \Carbon\Carbon::parse($c->collected_at)->format('d-M-Y H:i') : 'N/A' }}</td>
                 <td>
                     <button type="button"
-                        class="px-3 py-1 rounded mark-collected-btn"
+                        class="px-3 py-1 rounded mark-collected-btn {{ $c->collected ? 'opacity-60 cursor-not-allowed' : '' }}"
                         data-id="{{ $c->id }}"
                         data-email="{{ $c->participant_email }}"
                         {{ $c->collected ? 'disabled' : '' }}
-                        style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
-                        Mark as Collected
+                        style="background-color: {{ $c->collected ? '#d1d5db' : 'rgb(203,211,0)' }};
+                       color: {{ $c->collected ? 'rgb(107,114,128)' : 'rgb(127,98,44)' }};">
+                        {{ $c->collected ? 'Collected' : 'Mark as Collected' }}
                     </button>
                 </td>
             </tr>
             @endforeach
         </tbody>
+
     </table>
 </div>
 
@@ -132,6 +134,14 @@
             row.querySelector('.collected-by').textContent = data.collected_by || 'N/A';
             row.querySelector('td:nth-child(7)').textContent = data.collected_at || 'N/A';
             button.disabled = data.collected;
+
+            // ✅ ADD THESE LINES (visual + UX lock)
+            if (data.collected) {
+                button.textContent = 'Collected';
+                button.style.backgroundColor = '#d1d5db'; // gray
+                button.style.cursor = 'not-allowed';
+                button.classList.add('opacity-60');
+            }
 
             updateCounters();
         }

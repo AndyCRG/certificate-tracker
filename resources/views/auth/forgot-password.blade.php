@@ -11,13 +11,18 @@
 
         <!-- Email Address -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
+            <x-input-label for="email" :value="__('Email')" style="color: rgb(127,98,44);"/>
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus style="border-color: rgb(203,211,0);"
+                onfocus="this.style.boxShadow='0 0 0 2px rgb(127,98,44)'"
+                onblur="this.style.boxShadow='none'" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
+            <x-primary-button
+                style="background-color: rgb(127,98,44); color:white;"
+                onmouseover="this.style.backgroundColor='rgb(203,211,0)'"
+                onmouseout="this.style.backgroundColor='rgb(127,98,44)'">
                 {{ __('Email Password Reset Link') }}
             </x-primary-button>
         </div>

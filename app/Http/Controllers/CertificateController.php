@@ -58,8 +58,14 @@ class CertificateController extends Controller
             $certificate->not_collected_count = $certificate->participants_count - $certificate->collected_count;
         });
 
-        return view('certificates.index', compact('certificates'));
+        // ✅ Group certificates by course_name for collapsible table
+        $certificatesGrouped = $certificates->groupBy('course_name');
+
+        return view('certificates.index', [
+            'certificates' => $certificatesGrouped
+        ]);
     }
+
 
 
     public function create()

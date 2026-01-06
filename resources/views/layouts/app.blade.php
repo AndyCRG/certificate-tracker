@@ -50,19 +50,42 @@
                     onmouseout="this.style.backgroundColor='transparent'">
                     <i class="fa-solid fa-gauge mr-2" style="margin-right:0.5rem;"></i> Dashboard
                 </a>
+
                 <a href="/certificates"
                     style="display:flex; align-items:center; padding:0.75rem; border-radius:0.5rem; color: rgb(127,98,44); text-decoration:none; font-weight:500;"
                     onmouseover="this.style.backgroundColor='rgba(203,211,0,0.8)'"
                     onmouseout="this.style.backgroundColor='transparent'">
                     <i class="fa-solid fa-certificate mr-2" style="margin-right:0.5rem;"></i> Certificates
                 </a>
+
                 <a href="/participants"
                     style="display:flex; align-items:center; padding:0.75rem; border-radius:0.5rem; color: rgb(127,98,44); text-decoration:none; font-weight:500;"
                     onmouseover="this.style.backgroundColor='rgba(203,211,0,0.8)'"
                     onmouseout="this.style.backgroundColor='transparent'">
                     <i class="fa-solid fa-users mr-2" style="margin-right:0.5rem;"></i> Participants
                 </a>
+
+                <a href="{{ route('settings.index') }}"
+                    style="display:flex; align-items:center; padding:0.75rem; border-radius:0.5rem; color: rgb(127,98,44); text-decoration:none; font-weight:500;"
+                    onmouseover="this.style.backgroundColor='rgba(203,211,0,0.8)'"
+                    onmouseout="this.style.backgroundColor='transparent'">
+                    <i class="fa-solid fa-gear mr-2" style="margin-right:0.5rem;"></i> Settings
+                </a>
+
+                <!-- ✅ Logout -->
+                <form method="POST" action="{{ route('logout') }}" style="margin-top:auto;">
+                    @csrf
+                    <button type="submit"
+                        style="display:flex; align-items:center; width:100%; padding:0.75rem; border-radius:0.5rem;
+                   color: rgb(127,98,44); background:none; border:none; font-weight:500; cursor:pointer;"
+                        onmouseover="this.style.backgroundColor='rgba(203,211,0,0.8)'"
+                        onmouseout="this.style.backgroundColor='transparent'">
+                        <i class="fa-solid fa-right-from-bracket mr-2" style="margin-right:0.5rem;"></i>
+                        Logout
+                    </button>
+                </form>
             </nav>
+
         </aside>
 
         <!-- MAIN CONTENT -->
