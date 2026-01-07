@@ -47,6 +47,61 @@
         </button>
 
     </div>
+    <!-- FILTERS -->
+    <div class="flex flex-wrap gap-4 mb-4">
+
+        <!-- Course Name -->
+        <input
+            type="text"
+            id="filterCourseName"
+            placeholder="Filter by Course Name"
+            class="px-3 py-2 rounded-lg
+               border-2 border-[rgb(127,98,44)]
+               text-[rgb(127,98,44)]
+               placeholder-[rgb(127,98,44)]
+               focus:outline-none focus:ring-0
+               focus:border-[rgb(127,98,44)]
+               bg-white">
+
+        <!-- Course ID -->
+        <input
+            type="text"
+            id="filterCourseId"
+            placeholder="Filter by Course ID"
+            class="px-3 py-2 rounded-lg
+               border-2 border-[rgb(127,98,44)]
+               text-[rgb(127,98,44)]
+               placeholder-[rgb(127,98,44)]
+               focus:outline-none focus:ring-0
+               focus:border-[rgb(127,98,44)]
+               bg-white">
+
+        <!-- Date From -->
+        <input
+            type="date"
+            id="filterDateFrom"
+            class="px-3 py-2 rounded-lg
+               border-2 border-[rgb(127,98,44)]
+               text-[rgb(127,98,44)]
+               focus:outline-none focus:ring-0
+               focus:border-[rgb(127,98,44)]
+               bg-white">
+
+        <!-- Date To -->
+        <input
+            type="date"
+            id="filterDateTo"
+            class="px-3 py-2 rounded-lg
+               border-2 border-[rgb(127,98,44)]
+               text-[rgb(127,98,44)]
+               focus:outline-none focus:ring-0
+               focus:border-[rgb(127,98,44)]
+               bg-white">
+
+        <!-- Reset -->
+        <button id="resetFilters" class="px-4 py-2 rounded-lg font-semibold" style="background-color: rgb(203,211,0); color: rgb(127,98,44);"> Reset </button>
+
+    </div>
 
     <table id="participantsTable" class="table table-striped table-bordered w-full" style="color: rgb(127,98,44);">
         <thead style="background-color: rgb(245,247,200); border-bottom: 3px solid rgb(203,211,0);">
@@ -97,6 +152,11 @@
                         View
                     </a>
                 </td>
+
+                <!-- HIDDEN COLUMNS FOR FILTERING -->
+                <td style="display:none;">{{ $p->course_name }}</td> <!-- column 8 -->
+                <td style="display:none;">{{ $p->course_id }}</td> <!-- column 9 -->
+                <td style="display:none;">{{ $p->course_date }}</td> <!-- column 10 -->
             </tr>
             @endforeach
         </tbody>
@@ -145,11 +205,56 @@
 
 <script>
     $(document).ready(function() {
-        $('#participantsTable').DataTable({
-            "pageLength": 10,
-            "lengthMenu": [5, 10, 25, 50],
+
+        // Initialise DataTable ONCE
+        const table = $('#participantsTable').DataTable({
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50],
+            columnDefs: [{
+                    targets: [8, 9, 10],
+                    visible: false
+                } // Hide Course Name, Course ID, Date columns
+            ]
         });
+
+        // Course Name filter (hidden column 8)
+        $('#filterCourseName').on('keyup change', function() {
+            table.column(8).search(this.value).draw();
+        });
+
+        // Course ID filter (hidden column 9)
+        $('#filterCourseId').on('keyup change', function() {
+            table.column(9).search(this.value).draw();
+        });
+
+        // Date range filter (hidden column 10)
+        $.fn.dataTable.ext.search.push(function(settings, data) {
+            let from = $('#filterDateFrom').val();
+            let to = $('#filterDateTo').val();
+            let date = data[10]; // hidden date column
+
+            if (!from && !to) return true;
+            if (!date) return false;
+
+            if (from && date < from) return false;
+            if (to && date > to) return false;
+
+            return true;
+        });
+
+        $('#filterDateFrom, #filterDateTo').on('change', function() {
+            table.draw();
+        });
+
+        // Reset filters
+        $('#resetFilters').on('click', function() {
+            $('#filterCourseName').val('');
+            $('#filterCourseId').val('');
+            $('#filterDateFrom').val('');
+            $('#filterDateTo').val('');
+            table.search('').columns().search('').draw();
+        });
+
     });
 </script>
-
 @endsection

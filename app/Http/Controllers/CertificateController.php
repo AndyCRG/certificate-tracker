@@ -349,4 +349,31 @@ class CertificateController extends Controller
 
         return view('participants.index', compact('totalParticipants'));
     }
+    public function showParticipants($courseId)
+    {
+        // Get all certificates for this course
+        $certificates = Certificate::where('course_id', $courseId)->get();
+
+        // Collect all participant info for these certificates
+        $participants = [];
+
+        foreach ($certificates as $cert) {
+            foreach ($cert->participants as $participant) {
+                $participants[] = [
+                    'name' => $participant->name,
+                    'email' => $participant->email,
+                    'phone' => $participant->phone,
+                    'organization' => $participant->organization,
+                    'certificate_name' => $cert->certificate_name,
+                    'collected' => $participant->pivot->collected, // Assuming pivot table has 'collected'
+                    'not_collected' => !$participant->pivot->collected
+                ];
+            }
+        }
+
+        return view('certificates.participants', [
+            'courseId' => $courseId,
+            'participants' => $participants,
+        ]);
+    }
 }
