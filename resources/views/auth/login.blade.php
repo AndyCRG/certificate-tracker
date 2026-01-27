@@ -6,58 +6,60 @@
         @csrf
 
         <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div class="mb-4">
+            <x-input-label for="email" :value="__('Email')" style="color: rgb(127,98,44);" />
+            <x-text-input id="email" class="block mt-1 w-full border rounded p-2"
+                type="email" name="email" :value="old('email')" required autofocus autocomplete="username"
+                style="border-color: rgb(203,211,0);"
+                onfocus="this.style.boxShadow='0 0 0 2px rgb(127,98,44)'"
+                onblur="this.style.boxShadow='none'" />
+            <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-600" />
         </div>
 
         <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                type="password"
-                name="password"
-                required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div class="mb-4">
+            <x-input-label for="password" :value="__('Password')" style="color: rgb(127,98,44);" />
+            <x-text-input id="password" class="block mt-1 w-full border rounded p-2"
+                type="password" name="password" required autocomplete="current-password"
+                style="border-color: rgb(203,211,0);"
+                onfocus="this.style.boxShadow='0 0 0 2px rgb(127,98,44)'"
+                onblur="this.style.boxShadow='none'" />
+            <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-600" />
         </div>
 
         <!-- Remember Me -->
-        <div class="block mt-4">
+        <div class="block mb-4">
             <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+                <input id="remember_me" type="checkbox"
+                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-0"
+                    name="remember">
+                <span class="ms-2 text-sm" style="color: rgb(127,98,44);">{{ __('Remember me') }}</span>
             </label>
         </div>
-        
-        <div class="flex items-center justify-end mt-4">
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between mt-4">
             @if (Route::has('password.request'))
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
+            <a class="underline text-sm"
+                style="color: rgb(127,98,44);"
+                href="{{ route('password.request') }}">
                 {{ __('Forgot your password?') }}
             </a>
             @endif
 
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 ms-3" href="{{ route('register') }}">
-                {{ __('Create an account') }}
-            </a>
-
-            <x-primary-button class="ms-3">
+            <x-primary-button class="ms-3"
+                style="background-color: rgb(127,98,44); color: white;"
+                onmouseover="this.style.backgroundColor='rgb(203,211,0)'"
+                onmouseout="this.style.backgroundColor='rgb(127,98,44)'">
                 {{ __('Log in') }}
             </x-primary-button>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                {{ __('Forgot your password?') }}
+        <!-- Register Link -->
+        <div class="mt-4 text-center">
+            <a href="{{ route('register') }}" class="underline text-sm" style="color: rgb(127,98,44);">
+                {{ __('Create an account') }}
             </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
         </div>
     </form>
 </x-guest-layout>

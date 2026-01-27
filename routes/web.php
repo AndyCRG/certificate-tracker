@@ -54,11 +54,11 @@ Route::post(
     [CertificateController::class, 'toggleCollected']
 )->name('certificates.toggleCollected');
 
-// Update status
-Route::post(
-    '/certificate/update-status/{id}',
-    [CertificateController::class, 'updateStatus']
-)->name('certificate.updateStatus');
+// // Update status
+// Route::post(
+//     '/certificate/update-status/{id}',
+//     [CertificateController::class, 'updateStatus']
+// )->name('certificate.updateStatus');
 
 
 // Profile
@@ -73,6 +73,10 @@ Route::post('/participants/undo-last-upload', [CertificateController::class, 'un
 
 Route::post('/participants/undo', [CertificateController::class, 'undoUpload'])
     ->name('participants.undo');
+
+// Route to show participants for a specific course
+Route::get('/certificates/{courseId}/participants', [CertificateController::class, 'showParticipants'])
+    ->name('certificates.participants');
 
 
 require __DIR__ . '/auth.php';
