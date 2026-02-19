@@ -38,7 +38,7 @@
 
             <!-- Sidebar Header -->
             <div style="padding:1.5rem; border-bottom:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; gap:0.75rem;">
-                <img src="{{ asset('assets/images/KSG Logo (1).png') }}" alt="KSG Logo" style="width:1.5rem; height:1.5rem; object-contain;">
+                <img src="{{ asset('assets/images/KSG Logo (1).png') }}" alt="KSG Logo" style="width:1.5rem; height:1.5rem; object-fit:contain;">
                 <h2 style="font-size:1.25rem; font-weight:600; margin:0;">KSG-eLiTi Certificate Tracker</h2>
             </div>
 
