@@ -12,6 +12,14 @@
         ← Back to Certificates
     </a>
 
+    <!-- EXPORT BUTTON -->
+    <a href="{{ route('course.export', $courseId) }}"
+        class="px-4 py-2 rounded-lg font-semibold shadow-sm transition hover:scale-105"
+        style="background-color: rgb(127,98,44); color: white;">
+
+        Export Report
+    </a>
+
     <!-- SEARCH FILTER -->
     <div class="mb-6">
         <div class="flex flex-wrap items-center gap-4">
@@ -27,7 +35,36 @@
                 Clear Search
             </button>
         </div>
-        <div id="searchCount" class="mt-2 text-sm" style="color: rgb(127,98,44);"></div>
+
+        <!-- Stats -->
+        <div class="flex gap-3">
+
+            <div class="px-4 py-2 rounded-xl bg-gray-50 border">
+                <p class="text-xs text-gray-500">Total Participants</p>
+
+                <h3 class="font-bold text-lg"
+                    style="color: rgb(127,98,44);">
+
+                    {{ count($participants) }}
+                </h3>
+            </div>
+
+            <div class="px-4 py-2 rounded-xl"
+                style="background-color: rgb(245,247,200);">
+
+                <p class="text-xs"
+                    style="color: rgb(127,98,44);">
+
+                    Current View
+                </p>
+
+                <h3 id="searchCountDisplay"
+                    class="font-bold text-lg"
+                    style="color: rgb(127,98,44);">
+                </h3>
+            </div>
+
+        </div>
     </div>
 
     <!-- NO RESULTS MESSAGE -->
@@ -36,146 +73,247 @@
         No participants found matching your search.
     </div>
 
-    <!-- PARTICIPANTS TABLE -->
-    <div id="participantsContainer">
-        <table class="w-full border-collapse">
-            <thead style="background-color: rgb(245,247,200); border-bottom: 3px solid rgb(203,211,0);">
-                <tr style="color: rgb(127,98,44); font-weight: 600;">
-                    <th class="px-3 py-2">Name</th>
-                    <th class="px-3 py-2">Email</th>
-                    <th class="px-3 py-2">Phone</th>
-                    <th class="px-3 py-2">Organization</th>
-                    <th class="px-3 py-2">Certificate</th>
-                    <th class="px-3 py-2">Collected</th>
-                    <th class="px-3 py-2">Not Collected</th>
+    <!-- TABLE -->
+    <div class="overflow-x-auto border rounded-xl">
+
+        <table class="w-full">
+
+            <thead style="background-color: rgb(245,247,200);">
+
+                <tr class="text-left"
+                    style="color: rgb(127,98,44);">
+
+                    <th class="px-4 py-3 text-sm font-bold">#</th>
+                    <th class="px-4 py-3 text-sm font-bold">Participant</th>
+                    <th class="px-4 py-3 text-sm font-bold">Phone</th>
+                    <th class="px-4 py-3 text-sm font-bold">Organization</th>
+                    <th class="px-4 py-3 text-sm font-bold">Certificate</th>
+                    <th class="px-4 py-3 text-sm font-bold text-center">Status</th>
+
                 </tr>
+
             </thead>
+
             <tbody id="participantsTableBody">
-                @foreach($participants as $p)
-                <tr class="hover:bg-[rgb(203,211,0)]/20 participant-row cursor-pointer transition-all duration-200"
-                    data-email="{{ $p['email'] }}"
-                    onclick="window.location.href='{{ route('participants.show', $p['email']) }}'">
-                    <td class="px-3 py-2 participant-name">{{ $p['name'] }}</td>
-                    <td class="px-3 py-2 participant-email">{{ $p['email'] }}</td>
-                    <td class="px-3 py-2 participant-phone">{{ $p['phone'] }}</td>
-                    <td class="px-3 py-2 participant-organization">{{ $p['organization'] }}</td>
-                    <td class="px-3 py-2 participant-certificate">{{ $p['certificate_name'] }}</td>
-                    <td class="px-3 py-2 participant-collected">
-                        @if($p['collected'])
-                        <span class="px-2 py-1 rounded text-xs font-semibold" style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
-                            Yes
-                        </span>
-                        @else
-                        -
-                        @endif
-                    </td>
-                    <td class="px-3 py-2 participant-notcollected">
-                        @if($p['not_collected'])
-                        <span class="px-2 py-1 rounded text-xs font-semibold" style="background-color: rgb(245,100,100); color: white;">
-                            Yes
-                        </span>
-                        @else
-                        -
-                        @endif
+
+                @if(count($participants) == 0)
+                <tr>
+                    <td colspan="6" class="text-center py-6 text-gray-500">
+                        No participants found for this course.
                     </td>
                 </tr>
+                @endif
+
+                @foreach($participants as $index => $p)
+
+                <tr class="participant-row border-t hover:bg-yellow-50 cursor-pointer transition"
+                    onclick="window.location.href='{{ route('participants.show', $p['email']) }}'">
+
+                    <!-- NUMBER -->
+                    <td class="px-4 py-3 row-number">
+                        {{ $index + 1 }}
+                    </td>
+
+                    <!-- NAME -->
+                    <td class="px-4 py-3">
+
+                        <div class="participant-name font-semibold text-gray-800">
+                            {{ $p['name'] }}
+                        </div>
+
+                        <div class="participant-email text-xs text-gray-500">
+                            {{ $p['email'] }}
+                        </div>
+
+                    </td>
+
+                    <!-- PHONE -->
+                    <td class="px-4 py-3 text-sm text-gray-700">
+                        {{ $p['phone'] }}
+                    </td>
+
+                    <!-- ORGANIZATION -->
+                    <td class="px-4 py-3 text-sm text-gray-700">
+                        {{ $p['organization'] }}
+                    </td>
+
+                    <!-- CERTIFICATE -->
+                    <td class="px-4 py-3 text-sm text-gray-700">
+                        {{ $p['certificate_name'] }}
+                    </td>
+
+                    <!-- STATUS -->
+                    <td class="px-4 py-3 text-center">
+
+                        @if($p['collected'])
+
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
+                            style="background-color: rgba(203,211,0,0.2); color: rgb(127,98,44);">
+
+                            <span class="w-2 h-2 rounded-full"
+                                style="background-color: rgb(203,211,0);">
+                            </span>
+
+                            Collected
+                        </span>
+
+                        @else
+
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-600">
+
+                            <span class="w-2 h-2 rounded-full bg-red-500">
+                            </span>
+
+                            Pending
+                        </span>
+
+                        @endif
+
+                    </td>
+
+                </tr>
+
                 @endforeach
+
             </tbody>
+
         </table>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="flex items-center justify-between mt-5">
+
+        <button id="prevPage"
+            class="px-4 py-2 rounded-lg font-semibold disabled:opacity-40"
+            style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
+
+            ← Previous
+        </button>
+
+        <div id="pageInfo"
+            class="font-semibold text-sm"
+            style="color: rgb(127,98,44);">
+        </div>
+
+        <button id="nextPage"
+            class="px-4 py-2 rounded-lg font-semibold disabled:opacity-40"
+            style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
+
+            Next →
+        </button>
+
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+
+        const rowsPerPage = 10;
+        let currentPage = 1;
+
+        const rows = Array.from(document.querySelectorAll('.participant-row'));
+
         const searchInput = document.getElementById('participantSearch');
         const resetButton = document.getElementById('resetSearch');
-        const participantsTable = document.getElementById('participantsTableBody');
-        const noResultsMessage = document.getElementById('noResultsMessage');
-        const searchCount = document.getElementById('searchCount');
-        const originalRows = Array.from(participantsTable.querySelectorAll('.participant-row'));
-        const totalParticipants = originalRows.length;
 
-        // Store original onclick handlers for each row
-        originalRows.forEach(row => {
-            row._originalOnClick = row.onclick;
-        });
+        const prevPage = document.getElementById('prevPage');
+        const nextPage = document.getElementById('nextPage');
 
-        // Initialize search count
-        updateSearchCount(totalParticipants, totalParticipants);
+        const pageInfo = document.getElementById('pageInfo');
 
-        function updateSearchCount(shown, total) {
-            searchCount.textContent = `Showing ${shown} of ${total} participants`;
-        }
+        const searchCount = document.getElementById('searchCountDisplay');
 
-        function filterParticipants() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            let visibleCount = 0;
+        const noResults = document.getElementById('noResultsMessage');
 
-            if (searchTerm === '') {
-                // Show all rows and restore click handlers
-                originalRows.forEach((row, index) => {
-                    row.style.display = '';
-                    // Restore original onclick handler
-                    row.onclick = row._originalOnClick;
-                    row.style.cursor = 'pointer';
-                    row.classList.add('hover:bg-[rgb(203,211,0)]/20');
-                });
-                noResultsMessage.classList.add('hidden');
-                updateSearchCount(totalParticipants, totalParticipants);
-                return;
-            }
+        let filteredRows = [...rows];
 
-            // Filter rows
-            originalRows.forEach(row => {
-                const name = row.querySelector('.participant-name').textContent.toLowerCase();
-                const email = row.querySelector('.participant-email').textContent.toLowerCase();
+        function renderTable() {
 
-                if (name.includes(searchTerm) || email.includes(searchTerm)) {
-                    row.style.display = '';
-                    // Restore click functionality for visible rows
-                    row.onclick = row._originalOnClick;
-                    row.style.cursor = 'pointer';
-                    row.classList.add('hover:bg-[rgb(203,211,0)]/20');
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                    // Remove click functionality for hidden rows
-                    row.onclick = null;
-                    row.style.cursor = 'default';
-                    row.classList.remove('hover:bg-[rgb(203,211,0)]/20');
-                }
+            rows.forEach(row => row.style.display = 'none');
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+
+            const paginatedRows = filteredRows.slice(start, end);
+
+            paginatedRows.forEach((row, index) => {
+
+                row.style.display = '';
+
+                row.querySelector('.row-number').textContent = start + index + 1;
             });
 
-            // Show/hide no results message
-            if (visibleCount === 0) {
-                noResultsMessage.classList.remove('hidden');
-            } else {
-                noResultsMessage.classList.add('hidden');
-            }
+            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
 
-            updateSearchCount(visibleCount, totalParticipants);
+            pageInfo.textContent =
+                `Page ${currentPage} of ${totalPages || 1}`;
+
+            searchCount.textContent =
+                `${filteredRows.length} Showing`;
+
+            prevPage.disabled = currentPage === 1;
+
+            nextPage.disabled = currentPage === totalPages || totalPages === 0;
+
+            noResults.classList.toggle('hidden', filteredRows.length > 0);
         }
 
-        // Event listeners
-        searchInput.addEventListener('input', filterParticipants);
+        function filterRows() {
 
-        resetButton.addEventListener('click', function() {
+            const term = searchInput.value.toLowerCase();
+
+            filteredRows = rows.filter(row => {
+
+                const name = row.querySelector('.participant-name').textContent.toLowerCase();
+
+                const email = row.querySelector('.participant-email').textContent.toLowerCase();
+
+                return name.includes(term) || email.includes(term);
+            });
+
+            currentPage = 1;
+
+            renderTable();
+        }
+
+        searchInput.addEventListener('input', filterRows);
+
+        resetButton.addEventListener('click', () => {
+
             searchInput.value = '';
-            filterParticipants();
-            searchInput.focus();
+
+            filteredRows = [...rows];
+
+            currentPage = 1;
+
+            renderTable();
         });
 
-        // Prevent clicks on table headers from triggering navigation
-        document.querySelectorAll('thead tr th').forEach(th => {
-            th.style.cursor = 'default';
-            th.onclick = function(e) {
-                e.stopPropagation();
-                return false;
-            };
+        prevPage.addEventListener('click', () => {
+
+            if (currentPage > 1) {
+
+                currentPage--;
+
+                renderTable();
+            }
         });
 
-        // Initial focus on search input
-        searchInput.focus();
+        nextPage.addEventListener('click', () => {
+
+            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+
+            if (currentPage < totalPages) {
+
+                currentPage++;
+
+                renderTable();
+            }
+        });
+
+        renderTable();
+
     });
 </script>
 @endsection

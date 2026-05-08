@@ -4,26 +4,60 @@
 
 <div class="bg-white p-6 rounded-xl shadow-md" style="color: rgb(127,98,44);">
 
-    <h2 class="text-xl font-bold mb-4" style="color: rgb(127,98,44);">Participants</h2>
+    <!-- HEADER -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+
+        <div>
+            <h2 class="text-2xl font-bold tracking-tight"
+                style="color: rgb(127,98,44);">
+                Participants Dashboard
+            </h2>
+
+            <p class="text-xs mt-1"
+                style="color: rgb(127,98,44); opacity: .8;">
+                Manage participant uploads, enrollments and certificate tracking.
+            </p>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="flex flex-wrap gap-2">
+
+            <a href="{{ route('participants.create') }}"
+                class="px-4 py-2 rounded-lg font-semibold mb-4 inline-block"
+                style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
+                + Add Participant
+            </a>
+
+            <!-- <button onclick="document.getElementById('uploadModal').showModal()"
+                class="px-4 py-2 rounded-lg font-semibold transition duration-200"
+                style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
+
+                Bulk Upload
+            </button> -->
+
+        </div>
+    </div>
 
     <!-- SUCCESS ALERT -->
     @if(session('success'))
-    <div class="bg-green-100 p-3 rounded mb-4 flex justify-between items-center" style="color: rgb(127,98,44);">
-        <span>{{ session('success') }}</span>
+    <div class="mb-5 p-4 rounded-xl border-l-4 shadow-sm flex justify-between items-center"
+        style="background-color: rgb(245,247,200); border-color: rgb(203,211,0); color: rgb(127,98,44);">
+
+        <span class="font-medium">{{ session('success') }}</span>
 
         @if(session('batch_id'))
         <button onclick="document.getElementById('undoModal').showModal()"
-            class="underline ml-3">
+            class="underline font-semibold">
             Undo Upload
         </button>
         @endif
     </div>
     @endif
 
-    <!-- VALIDATION ERRORS -->
+    <!-- ERRORS -->
     @if ($errors->any())
-    <div class="bg-red-200 p-3 rounded mb-4" style="color: rgb(127,98,44);">
-        <ul class="list-disc pl-5">
+    <div class="bg-red-100 border-l-4 border-red-500 p-4 rounded-xl mb-5">
+        <ul class="list-disc pl-5 text-red-700">
             @foreach ($errors->all() as $error)
             <li>{{ $error }}</li>
             @endforeach
@@ -31,75 +65,109 @@
     </div>
     @endif
 
-    <!-- ACTION BUTTONS -->
-    <div class="flex gap-3 mb-4">
+    <!-- FILTER SECTION -->
+    <div class="bg-white rounded-xl shadow-sm border border-[rgb(203,211,0)]/30 p-4 mb-5">
 
-        <a href="{{ route('participants.create') }}"
-            class="px-4 py-2 rounded-lg font-semibold"
-            style="background-color: rgb(203,211,0); color: rgb(127,98,44); hover:brightness(90%);">
-            + Add Participant
-        </a>
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
 
-        <button onclick="document.getElementById('uploadModal').showModal()"
-            class="px-4 py-2 rounded-lg font-semibold"
-            style="background-color: rgb(203,211,0); color: rgb(127,98,44); hover:brightness(90%);">
-            Upload Excel
-        </button>
+            <h3 class="text-base font-semibold"
+                style="color: rgb(127,98,44);">
+                Filter Participants
+            </h3>
 
-    </div>
-    <!-- FILTERS -->
-    <div class="flex flex-wrap gap-4 mb-4">
+            <button
+                id="resetFilters"
+                class="px-4 py-2 rounded-lg font-semibold shadow-sm transition duration-200"
+                style="background-color: rgb(203,211,0); color: rgb(127,98,44);">
 
-        <!-- Course Name -->
-        <input
-            type="text"
-            id="filterCourseName"
-            placeholder="Filter by Course Name"
-            class="px-3 py-2 rounded-lg
-               border-2 border-[rgb(127,98,44)]
-               text-[rgb(127,98,44)]
-               placeholder-[rgb(127,98,44)]
-               focus:outline-none focus:ring-0
-               focus:border-[rgb(127,98,44)]
-               bg-white">
+                Reset Filters
+            </button>
 
-        <!-- Course ID -->
-        <input
-            type="text"
-            id="filterCourseId"
-            placeholder="Filter by Course ID"
-            class="px-3 py-2 rounded-lg
-               border-2 border-[rgb(127,98,44)]
-               text-[rgb(127,98,44)]
-               placeholder-[rgb(127,98,44)]
-               focus:outline-none focus:ring-0
-               focus:border-[rgb(127,98,44)]
-               bg-white">
+        </div>
 
-        <!-- Date From -->
-        <input
-            type="date"
-            id="filterDateFrom"
-            class="px-3 py-2 rounded-lg
-               border-2 border-[rgb(127,98,44)]
-               text-[rgb(127,98,44)]
-               focus:outline-none focus:ring-0
-               focus:border-[rgb(127,98,44)]
-               bg-white">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
-        <!-- Date To -->
-        <input
-            type="date"
-            id="filterDateTo"
-            class="px-3 py-2 rounded-lg
-               border-2 border-[rgb(127,98,44)]
-               text-[rgb(127,98,44)]
-               focus:outline-none focus:ring-0
-               focus:border-[rgb(127,98,44)]
-               bg-white">
+            <!-- Course Name -->
+            <div>
+                <label class="block mb-1 text-xs font-semibold"
+                    style="color: rgb(127,98,44);">
+                    Course Name
+                </label>
 
-        <!-- Reset -->
-        <button id="resetFilters" class="px-4 py-2 rounded-lg font-semibold" style="background-color: rgb(203,211,0); color: rgb(127,98,44);"> Reset </button>
+                <input
+                    type="text"
+                    id="filterCourseName"
+                    placeholder="Search course..."
+                    class="w-full px-3 py-2 rounded-lg
+                       border-2 border-[rgb(127,98,44)]
+                       text-black
+                       placeholder-gray-500
+                       focus:outline-none
+                       focus:ring-2
+                       focus:ring-[rgb(203,211,0)]
+                       bg-white">
+            </div>
+
+            <!-- Course ID -->
+            <div>
+                <label class="block mb-1 text-xs font-semibold"
+                    style="color: rgb(127,98,44);">
+                    Course ID
+                </label>
+
+                <input
+                    type="text"
+                    id="filterCourseId"
+                    placeholder="Search ID..."
+                    class="w-full px-3 py-2 rounded-lg
+                       border-2 border-[rgb(127,98,44)]
+                       text-black
+                       placeholder-gray-500
+                       focus:outline-none
+                       focus:ring-2
+                       focus:ring-[rgb(203,211,0)]
+                       bg-white">
+            </div>
+
+            <!-- Date From -->
+            <div>
+                <label class="block mb-1 text-xs font-semibold"
+                    style="color: rgb(127,98,44);">
+                    Date From
+                </label>
+
+                <input
+                    type="date"
+                    id="filterDateFrom"
+                    class="w-full px-3 py-2 rounded-lg
+                       border-2 border-[rgb(127,98,44)]
+                       text-black
+                       focus:outline-none
+                       focus:ring-2
+                       focus:ring-[rgb(203,211,0)]
+                       bg-white">
+            </div>
+
+            <!-- Date To -->
+            <div>
+                <label class="block mb-1 text-xs font-semibold"
+                    style="color: rgb(127,98,44);">
+                    Date To
+                </label>
+
+                <input
+                    type="date"
+                    id="filterDateTo"
+                    class="w-full px-3 py-2 rounded-lg
+                       border-2 border-[rgb(127,98,44)]
+                       text-black
+                       focus:outline-none
+                       focus:ring-2
+                       focus:ring-[rgb(203,211,0)]
+                       bg-white">
+            </div>
+
+        </div>
 
     </div>
 

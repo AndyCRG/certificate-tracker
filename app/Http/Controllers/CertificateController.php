@@ -105,8 +105,27 @@ class CertificateController extends Controller
             ->pluck('email')
             ->toArray();
 
-        $certificate->participants()->attach($participantEmails, ['collected' => 0]);
+        $participants = Participant::where('course_id', $request->course_id)
+            ->get();
 
+        foreach ($participants as $participant) {
+
+            $exists = DB::table('certificate_participant')
+                ->where('certificate_id', $certificate->id)
+                ->where('participant_email', $participant->email)
+                ->exists();
+
+            if (!$exists) {
+
+                DB::table('certificate_participant')->insert([
+                    'certificate_id' => $certificate->id,
+                    'participant_email' => $participant->email,
+                    'collected' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
         return redirect()->route('certificates.index')
             ->with('success', 'Certificate added successfully!');
     }
@@ -149,6 +168,28 @@ class CertificateController extends Controller
         $certificate->delete();
         return redirect()->route('certificates.index')->with('success', 'Certificate deleted successfully!');
     }
+    // Export course and participant data
+    public function exportCourseParticipants($courseId)
+    {
+        $participants = DB::table('certificate_participant')
+            ->join('participants', 'certificate_participant.participant_email', '=', 'participants.email')
+            ->join('certificates', 'certificate_participant.certificate_id', '=', 'certificates.id')
+            ->where('certificates.course_id', $courseId)
+            ->select(
+                'participants.name',
+                'participants.email',
+                'participants.phone',
+                'participants.organization',
+                'certificates.certificate_name',
+                'certificate_participant.collected'
+            )
+            ->get();
+
+        return Excel::download(
+            new \App\Exports\CourseParticipantsExport($participants),
+            $courseId . '_participants.xlsx'
+        );
+    }
 
 
     /* --------------------------------------
@@ -182,12 +223,20 @@ class CertificateController extends Controller
                     ->get();
 
                 // Count distinct courses
-                $p->totalCourses = $certificates->pluck('course_id')->unique()->count();
+                $p->totalCourses = DB::table('certificate_participant')
+                    ->where('participant_email', $p->email)
+                    ->distinct('certificate_id')
+                    ->count('certificate_id');
 
                 // Count collected / not collected
-                $p->collected = $certificates->where('collected', 1)->count();
-                $p->notCollected = $certificates->where('collected', 0)->count();
-
+                $p->collected = DB::table('certificate_participant')
+                    ->where('participant_email', $p->email)
+                    ->where('collected', 1)
+                    ->count();
+                $p->notCollected = DB::table('certificate_participant')
+                    ->where('participant_email', $p->email)
+                    ->where('collected', 0)
+                    ->count();
                 return $p;
             });
 
@@ -314,13 +363,40 @@ class CertificateController extends Controller
             'file' => 'required|mimes:xlsx,csv,txt',
         ]);
 
-        $batch_id = "batch_" . time();
+        Excel::import(new ParticipantsImport(), $request->file('file'));
 
-        Excel::import(new ParticipantsImport($batch_id), $request->file('file'));
+        // Get all participants
+        $participants = Participant::all();
+
+        foreach ($participants as $participant) {
+
+            // Find matching certificate by course_id
+            $certificate = Certificate::where('course_id', $participant->course_id)->first();
+
+            if ($certificate) {
+
+                // Check if already attached
+                $exists = DB::table('certificate_participant')
+                    ->where('certificate_id', $certificate->id)
+                    ->where('participant_email', $participant->email)
+                    ->exists();
+
+                // Attach if not existing
+                if (!$exists) {
+
+                    DB::table('certificate_participant')->insert([
+                        'certificate_id' => $certificate->id,
+                        'participant_email' => $participant->email,
+                        'collected' => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('participants.index')
-            ->with('success', 'Participants uploaded successfully!')
-            ->with('batch_id', $batch_id);
+            ->with('success', 'Participants uploaded successfully!');
     }
 
 
@@ -339,6 +415,22 @@ class CertificateController extends Controller
             ->with('success', 'Upload undone successfully!');
     }
 
+
+    public function undoLastUpload(Request $request)
+    {
+        // Example logic (adjust to your app)
+
+        $lastUpload = Certificate::latest()->first();
+
+        if (!$lastUpload) {
+            return back()->with('error', 'No upload found to undo.');
+        }
+
+        // Example: delete or revert last upload
+        $lastUpload->delete();
+
+        return back()->with('success', 'Last upload undone successfully.');
+    }
 
     /* --------------------------------------
  | PARTICIPANTS DASHBOARD

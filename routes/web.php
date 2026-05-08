@@ -18,8 +18,14 @@ Route::get('/dashboard', [CertificateController::class, 'dashboard'])->name('das
 
 // Certificates (resource)
 Route::resource('certificates', CertificateController::class);
+// Route to show participants for a specific course
+Route::get(
+    '/certificates/course/{course_id}/participants',
+    [CertificateController::class, 'showParticipants']
+)->name('certificates.participants');
 
-// ---------------------------
+
+
 // PARTICIPANT ROUTES (FIXED)
 // ---------------------------
 
@@ -74,9 +80,8 @@ Route::post('/participants/undo-last-upload', [CertificateController::class, 'un
 Route::post('/participants/undo', [CertificateController::class, 'undoUpload'])
     ->name('participants.undo');
 
-// Route to show participants for a specific course
-Route::get('/certificates/{courseId}/participants', [CertificateController::class, 'showParticipants'])
-    ->name('certificates.participants');
-
+// New route for exporting course details for participants 
+Route::get('/course/{courseId}/export', [CertificateController::class, 'exportCourseParticipants'])
+    ->name('course.export');
 
 require __DIR__ . '/auth.php';

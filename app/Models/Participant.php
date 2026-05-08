@@ -11,12 +11,6 @@ class Participant extends Model
 
     protected $table = 'participants';
 
-    protected $primaryKey = 'email'; // email as primary key
-
-    public $incrementing = false; // PK is string
-
-    protected $keyType = 'string';
-
     protected $fillable = [
         'email',
         'name',
@@ -54,4 +48,6 @@ class Participant extends Model
             'course_id'
         );
     }
+
+    
 }
